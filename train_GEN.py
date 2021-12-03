@@ -1,12 +1,14 @@
 import numpy as np
 import torch
 
+
 if torch.cuda.is_available():
     print('Using CUDA')
     device = 'cuda'
 else:
     print('Using CPU')
     device = 'cpu'
+
 
 '''
 ================================================================================
@@ -18,7 +20,7 @@ from torch_geometric.transforms import BaseTransform
 
 class SelectTargets(BaseTransform):
     '''
-    Filters out unwanted targets
+    Filter out unwanted targets
     '''
     def __init__(self, targets):
         self.targets = targets
@@ -54,7 +56,7 @@ random_seed = 42
 print('-----------------')
 print('Loading dataset.')
 
-dataset = QM9(root='./datasets/QM9/')
+dataset = QM9(root='./datasets/data/QM9/')
 
 # Select targets
 dataset.data.y = dataset.data.y[:, targets]
@@ -64,7 +66,6 @@ y_mean = dataset.data.y.mean(dim=0)
 y_std = dataset.data.y.std(dim=0)
 dataset.data.y -= y_mean
 dataset.data.y /= y_std
-#dataset.data.y *= 10
 
 train_size = len(dataset) - test_size
 train_set, test_set = torch.utils.data.random_split(
@@ -75,11 +76,14 @@ train_set, test_set = torch.utils.data.random_split(
 train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(test_set, batch_size=test_size)
 
-num_node_features = dataset.data.x.shape[1]
+num_atom_features = dataset.data.x.shape[1]
+num_edge_features = dataset.data.edge_attr.shape[1]
 num_classes = dataset.data.y.shape[1]
 
 print('Done.')
 print(dataset)
+print('Train size:', train_size)
+
 
 '''
 ================================================================================
@@ -87,37 +91,75 @@ Load your model here
 Also, set proper parameters for your optimizer
 ================================================================================
 '''
-from models.GraphSAGE import GraphSAGE
-from torch_geometric.nn import DimeNet
+from models.GEN import GEN
 from torch.optim import lr_scheduler
 
 print('-----------------')
 print('Building model.')
 
-'''
-model = DimeNet(
+model = GEN(
+    in_channels=num_atom_features,
+    edge_dim=num_edge_features,
     hidden_channels=64,
-    out_channels=num_classes,
-    num_blocks=7,
-    num_bilinear=5,
-    num_spherical=5,
-    num_radial=5
-)
-'''
-
-model = GraphSAGE(
-    in_channels=num_node_features,
-    hidden_channels=64,
-    num_layers=6,
+    num_layers=4,
     out_channels=num_classes
 )
 
 model.to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.005, weight_decay=1e-4)
-scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma = 0.5)
+scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.8)
 
 print('Done.')
 print(model)
+
+
+'''
+================================================================================
+Visualization
+================================================================================
+'''
+import matplotlib.pyplot as plt
+from matplotlib.pyplot import figure
+
+# Config
+point_size = 4
+point_color = '#2A52BE'
+
+plt.ion()
+fig, axs = plt.subplots(1, 4, figsize=(28, 6))
+plt.show(block=False)
+
+def update_scatter(y_true, y_pred):
+    axs[0].clear()
+    axs[1].clear()
+    axs[2].clear()
+    axs[3].clear()
+    axs[0].set_title('ALPHA')
+    axs[0].set_xlabel('Ground Truth')
+    axs[0].set_ylabel('Prediction')
+    axs[1].set_title('LUMO')
+    axs[1].set_xlabel('Ground Truth')
+    axs[1].set_ylabel('Prediction')
+    axs[2].set_title('U0')
+    axs[2].set_xlabel('Ground Truth')
+    axs[2].set_ylabel('Prediction')
+    axs[3].set_title('CV')
+    axs[3].set_xlabel('Ground Truth')
+    axs[3].set_ylabel('Prediction')
+    if len(y_true) != 0:
+        axs[0].scatter(y_true[:, 0], y_pred[:, 0], s=point_size, c=point_color)
+        axs[1].scatter(y_true[:, 1], y_pred[:, 1], s=point_size, c=point_color)
+        axs[2].scatter(y_true[:, 2], y_pred[:, 2], s=point_size, c=point_color)
+        axs[3].scatter(y_true[:, 3], y_pred[:, 3], s=point_size, c=point_color)
+    axs[0].set_ylim(axs[0].get_xlim())
+    axs[1].set_ylim(axs[1].get_xlim())
+    axs[2].set_ylim(axs[2].get_xlim())
+    axs[3].set_ylim(axs[3].get_xlim())
+    plt.pause(0.0001)
+    plt.draw()
+    plt.pause(0.0001)
+
+update_scatter([], [])
 
 
 '''
@@ -127,13 +169,9 @@ Do training
 '''
 from sklearn.metrics import r2_score
 
-import matplotlib.pyplot as plt
-from matplotlib.pyplot import figure
-plt.ion()
-figure(figsize=(28, 6), dpi=80)
-
 # Config
-num_epochs = 100
+num_epochs = 1000
+display_every = 99999
 
 print('-----------------')
 print('Start training...')
@@ -150,6 +188,17 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
         sum_loss += loss.item()
+
+        if (iter+1) % display_every == 0:
+            model.eval()
+            for test_batch in test_loader:
+                test_batch.to(device)
+                out = model(test_batch)
+                y_true = test_batch.y.cpu().detach().numpy()
+                y_pred = out.cpu().detach().numpy()
+            update_scatter(y_true, y_pred)
+            model.train()
+
     avg_loss = sum_loss / len(train_loader) / num_classes
     scheduler.step()
 
@@ -160,29 +209,21 @@ for epoch in range(num_epochs):
         y_true = batch.y.cpu().detach().numpy()
         y_pred = out.cpu().detach().numpy()
 
-    r2 = r2_score(y_true, y_pred, multioutput='raw_values')
-    mae = np.mean(np.abs(y_pred - y_true), axis=0)
+    update_scatter(y_true, y_pred)
 
-    plt.clf()
-    plt.subplot(1, 4, 1)
-    plt.scatter(y_true[:, 0], y_pred[:, 0])
-    plt.subplot(1, 4, 2)
-    plt.scatter(y_true[:, 1], y_pred[:, 1])
-    plt.subplot(1, 4, 3)
-    plt.scatter(y_true[:, 2], y_pred[:, 2])
-    plt.subplot(1, 4, 4)
-    plt.scatter(y_true[:, 3], y_pred[:, 3])
-    plt.pause(0.0001)
-    plt.draw()
-    plt.show(block=False)
-    plt.pause(0.0001)
+    r2 = r2_score(y_true, y_pred, multioutput='raw_values')
+    n = test_size
+    p = num_atom_features + num_edge_features
+    adj_r2 = 1 - (1-r2)*(n-1)/(n-p-1)
+
+    mae = np.mean(np.abs(y_pred - y_true), axis=0)
 
     print('Epoch {:03d} \t Avg. train loss: {:.4f}'.format(epoch, avg_loss))
     print('-')
-    print('\t\t ALPHA R2: {:.4f} \t MAE: {:.4f}'.format(r2[0], mae[0]))
-    print('\t\t LUMO  R2: {:.4f} \t MAE: {:.4f}'.format(r2[1], mae[1]))
-    print('\t\t U0    R2: {:.4f} \t MAE: {:.4f}'.format(r2[2], mae[2]))
-    print('\t\t CV    R2: {:.4f} \t MAE: {:.4f}'.format(r2[3], mae[3]))
+    print('\t\t ALPHA ADJ R2: {:.4f} \t MAE: {:.4f}'.format(adj_r2[0], mae[0]))
+    print('\t\t LUMO  ADJ R2: {:.4f} \t MAE: {:.4f}'.format(adj_r2[1], mae[1]))
+    print('\t\t U0    ADJ R2: {:.4f} \t MAE: {:.4f}'.format(adj_r2[2], mae[2]))
+    print('\t\t CV    ADJ R2: {:.4f} \t MAE: {:.4f}'.format(adj_r2[3], mae[3]))
     print('-')
 
 

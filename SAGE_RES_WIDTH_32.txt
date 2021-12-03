@@ -1,0 +1,100 @@
+Num layers   : 1
+Hidden size  : 32
+Epochs       : 100
+Learning rate: 100
+ALPHA ADJ R2: 0.9309 	 MAE: 0.1839
+LUMO  ADJ R2: 0.6985 	 MAE: 0.4476
+U0    ADJ R2: 0.9989 	 MAE: 0.0239
+CV    ADJ R2: 0.9024 	 MAE: 0.2471
+
+
+Num layers   : 2
+Hidden size  : 32
+Epochs       : 100
+Learning rate: 100
+ALPHA ADJ R2: 0.9666 	 MAE: 0.1263
+LUMO  ADJ R2: 0.9272 	 MAE: 0.2041
+U0    ADJ R2: 0.9990 	 MAE: 0.0234
+CV    ADJ R2: 0.9685 	 MAE: 0.1376
+
+
+Num layers   : 3
+Hidden size  : 32
+Epochs       : 100
+Learning rate: 100
+ALPHA ADJ R2: 0.9735 	 MAE: 0.1133
+LUMO  ADJ R2: 0.9371 	 MAE: 0.1888
+U0    ADJ R2: 0.9990 	 MAE: 0.0215
+CV    ADJ R2: 0.9729 	 MAE: 0.1283
+
+
+Num layers   : 4
+Hidden size  : 32
+Epochs       : 100
+Learning rate: 100
+ALPHA ADJ R2: 0.9783 	 MAE: 0.1049
+LUMO  ADJ R2: 0.9513 	 MAE: 0.1604
+U0    ADJ R2: 0.9985 	 MAE: 0.0298
+CV    ADJ R2: 0.9759 	 MAE: 0.1191
+
+
+Num layers   : 5
+Hidden size  : 32
+Epochs       : 100
+Learning rate: 100
+ALPHA ADJ R2: 0.9800 	 MAE: 0.1007
+LUMO  ADJ R2: 0.9588 	 MAE: 0.1518
+U0    ADJ R2: 0.9985 	 MAE: 0.0274
+CV    ADJ R2: 0.9787 	 MAE: 0.1099
+
+
+Num layers   : 6
+Hidden size  : 32
+Epochs       : 100
+Learning rate: 100
+ALPHA ADJ R2: 0.9820 	 MAE: 0.0945
+LUMO  ADJ R2: 0.9608 	 MAE: 0.1480
+U0    ADJ R2: 0.9986 	 MAE: 0.0261
+CV    ADJ R2: 0.9802 	 MAE: 0.1059
+
+
+Num layers   : 7
+Hidden size  : 32
+Epochs       : 100
+Learning rate: 100
+ALPHA ADJ R2: 0.9842 	 MAE: 0.0879
+LUMO  ADJ R2: 0.9622 	 MAE: 0.1462
+U0    ADJ R2: 0.9992 	 MAE: 0.0215
+CV    ADJ R2: 0.9818 	 MAE: 0.1015
+
+
+Num layers   : 8
+Hidden size  : 32
+Epochs       : 100
+Learning rate: 100
+ALPHA ADJ R2: 0.9838 	 MAE: 0.0906
+LUMO  ADJ R2: 0.9689 	 MAE: 0.1312
+U0    ADJ R2: 0.9987 	 MAE: 0.0262
+CV    ADJ R2: 0.9820 	 MAE: 0.0996
+
+
+Num layers   : 9
+Hidden size  : 32
+Epochs       : 100
+Learning rate: 100
+ALPHA ADJ R2: 0.9825 	 MAE: 0.0926
+LUMO  ADJ R2: 0.9678 	 MAE: 0.1328
+U0    ADJ R2: 0.9985 	 MAE: 0.0270
+CV    ADJ R2: 0.9819 	 MAE: 0.1009
+
+
+Num layers   : 10
+Hidden size  : 32
+Epochs       : 100
+Learning rate: 100
+ALPHA ADJ R2: 0.9816 	 MAE: 0.0940
+LUMO  ADJ R2: 0.9658 	 MAE: 0.1364
+U0    ADJ R2: 0.9986 	 MAE: 0.0269
+CV    ADJ R2: 0.9804 	 MAE: 0.1044
+
+
